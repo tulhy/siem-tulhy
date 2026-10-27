@@ -75,3 +75,7 @@ Em Docker ou nuvem, use as variáveis `SIEM_ADMIN_TOKEN` e `SIEM_EXCLUSION_TOKEN
 - [Agente em segundo plano](docs/AGENTE_SEGUNDO_PLANO.md)
 - [Segurança](docs/SECURITY.md)
 - [Validação](docs/VALIDATION.md)
+
+## Licença
+
+[MIT](LICENSE). O agente inclui a biblioteca [pypdf](https://github.com/py-pdf/pypdf) (BSD) em `agent/collectors/pdf_library.zip`.
