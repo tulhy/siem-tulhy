@@ -1,0 +1,1 @@
+{"weights":{"LOW":10,"MEDIUM":25,"HIGH":50,"CRITICAL":80},"thresholds":[25,50,80],"window_seconds":3600}

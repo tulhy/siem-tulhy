@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "discard_severities": [
+    "LOW"
+  ],
+  "discard_types": [
+    "telemetry_lost",
+    "telemetry.lost"
+  ],
+  "keep_types_at_severities": [
+    "HIGH",
+    "CRITICAL"
+  ]
+}

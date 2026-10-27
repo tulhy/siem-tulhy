@@ -1,0 +1,78 @@
+- id: AUTH_FAILURE_BURST
+  name: Falhas de autenticação repetidas
+  description: Múltiplas falhas de autenticação para o mesmo usuário; podem indicar tentativa de acesso indevido ou configuração incorreta.
+  category: credential_access
+  severity: HIGH
+  confidence: HIGH
+  conditions:
+    - {field: event_type, value: auth.failure}
+  group_by: [user]
+  threshold: 5
+  window_seconds: 300
+  mitre: [T1110]
+
+- id: CONNECTION_BURST
+  name: Processo com muitas conexões
+  description: Um mesmo processo abriu várias conexões em uma janela curta. Verifique destino e atividade esperada.
+  category: network
+  severity: MEDIUM
+  conditions:
+    - {field: event_type, value: network.connection}
+  group_by: [process.pid, process.created_at]
+  threshold: 20
+  window_seconds: 60
+
+- id: TEMP_THEN_NETWORK
+  name: Processo temporário seguido de conexão
+  description: Execução em diretório temporário seguida por conexão de rede do mesmo processo. A sequência aumenta a necessidade de investigação.
+  category: correlation
+  severity: HIGH
+  confidence: HIGH
+  conditions:
+    - {field: event_type, op: in, value: [process.start, network.connection]}
+  group_by: [process.pid, process.created_at]
+  window_seconds: 180
+  sequence:
+    - - {field: event_type, value: process.start}
+      - {field: process.path, op: contains_any, value: ['\Temp\', /tmp/]}
+    - - {field: event_type, value: network.connection}
+
+- id: PROCESS_THEN_PERSISTENCE
+  name: Execução seguida de mudança de persistência
+  description: Eventos com PID e instante de criação correlacionáveis mostram execução e alteração de persistência. Eventos sem esse contexto não são ligados artificialmente.
+  category: persistence
+  severity: HIGH
+  conditions:
+    - {field: event_type, op: in, value: [process.start, persistence.change]}
+  group_by: [process.pid, process.created_at]
+  window_seconds: 300
+  sequence:
+    - - {field: event_type, value: process.start}
+    - - {field: event_type, value: persistence.change}
+  mitre: [T1547.001]
+
+- id: AUTH_FAILURE_MACHINE_BURST
+  name: Falhas de autenticação distribuídas na máquina
+  description: Múltiplas falhas, inclusive sem usuário identificado ou distribuídas entre contas. Complementa a detecção por usuário.
+  category: credential_access
+  severity: HIGH
+  conditions:
+    - {field: event_type, value: auth.failure}
+  threshold: 10
+  window_seconds: 300
+  mitre: [T1110]
+
+- id: SYSMON_TEMP_THEN_NETWORK
+  name: Sysmon correlaciona execução temporária e rede
+  description: ProcessGuid liga os eventos do Sysmon ao mesmo processo, sem confundir reutilização de PID.
+  category: correlation
+  severity: HIGH
+  confidence: HIGH
+  conditions:
+    - {field: event_type, op: in, value: [process.start, network.connection]}
+  group_by: [raw_event.process_guid]
+  window_seconds: 180
+  sequence:
+    - - {field: event_type, value: process.start}
+      - {field: process.path, op: contains_any, value: ['\Temp\', /tmp/]}
+    - - {field: event_type, value: network.connection}

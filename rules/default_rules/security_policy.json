@@ -1,0 +1,347 @@
+[
+  {
+    "id": "EXPOSED_SENSITIVE_PORT",
+    "name": "Porta local sensível aberta por política",
+    "description": "O agente observou um socket TCP em escuta ou UDP vinculado a uma das portas definidas pelo administrador. Isso não comprova acesso pela Internet nem invasão: confira endereço local, firewall e programa responsável.",
+    "category": "exposure",
+    "severity": "HIGH",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "network.listen",
+          "network.bind"
+        ]
+      },
+      {
+        "field": "network.local_port",
+        "op": "in",
+        "value": [
+          3389,
+          4444,
+          22,
+          23,
+          137,
+          138,
+          139,
+          445,
+          20,
+          21,
+          3306,
+          1433,
+          5432,
+          31337,
+          6660,
+          6669
+        ]
+      }
+    ],
+    "tags": [
+      "policy",
+      "local-port"
+    ]
+  },
+  {
+    "id": "INBOUND_64668",
+    "name": "Conexão de entrada na porta local 64668",
+    "description": "Uma conexão recebida na porta 64668 foi observada. A direção vem do log do Windows ou de correspondência com um socket em escuta; investigue o programa e a origem.",
+    "category": "network",
+    "severity": "MEDIUM",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "network.connection"
+      },
+      {
+        "field": "raw_event.direction",
+        "value": "inbound"
+      },
+      {
+        "field": "network.local_port",
+        "value": 64668
+      }
+    ]
+  },
+  {
+    "id": "POLICY_SCRIPT_HTML",
+    "name": "Arquivo PY, VBS, HTM ou BAT observado — crítico por política",
+    "description": "Uma das extensões .py, .vbs, .htm ou .bat foi observada em pasta monitorada. A criticidade é uma política administrativa; a extensão não comprova infecção. Confira caminho e origem.",
+    "category": "policy",
+    "severity": "CRITICAL",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "file.present",
+          "file.created",
+          "file.modified",
+          "file.moved"
+        ]
+      },
+      {
+        "field": "file.path",
+        "op": "ends_with",
+        "value": [
+          ".py",
+          ".vbs",
+          ".htm",
+          ".bat"
+        ]
+      },
+      {
+        "field": "raw_event.directory",
+        "value": false
+      }
+    ],
+    "tags": [
+      "policy",
+      "extension"
+    ]
+  },
+  {
+    "id": "POLICY_SCRIPT_HTML_MOVED",
+    "name": "Arquivo PY, VBS, HTM ou BAT observado — crítico por política",
+    "description": "Uma das extensões .py, .vbs, .htm ou .bat foi observada em pasta monitorada. A criticidade é uma política administrativa; a extensão não comprova infecção. Confira caminho e origem.",
+    "category": "policy",
+    "severity": "CRITICAL",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "file.moved"
+      },
+      {
+        "field": "file.destination",
+        "op": "ends_with",
+        "value": [
+          ".py",
+          ".vbs",
+          ".htm",
+          ".bat"
+        ]
+      },
+      {
+        "field": "raw_event.directory",
+        "value": false
+      }
+    ],
+    "tags": [
+      "policy",
+      "extension"
+    ]
+  },
+  {
+    "id": "REMOTE_EXECUTION_SUSPECT",
+    "name": "Entrada remota seguida de manipulação de processo",
+    "description": "O mesmo identificador de processo do Sysmon recebeu uma conexão e depois apresentou criação de thread remota ou manipulação de imagem em até cinco minutos. Pode indicar execução remota maliciosa; confirme as evidências e atividades autorizadas.",
+    "category": "correlation",
+    "severity": "CRITICAL",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "network.connection",
+          "process.remote_thread",
+          "process.tampering"
+        ]
+      }
+    ],
+    "group_by": [
+      "raw_event.process_guid"
+    ],
+    "window_seconds": 300,
+    "sequence": [
+      [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "raw_event.direction",
+          "value": "inbound"
+        }
+      ],
+      [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "process.remote_thread",
+            "process.tampering"
+          ]
+        }
+      ]
+    ],
+    "mitre": [
+      "T1055"
+    ]
+  },
+  {
+    "id": "REMOTE_EXECUTION_PROCESS",
+    "name": "Entrada remota e manipulação no mesmo processo identificado",
+    "description": "Conexão de entrada e manipulação de processo ligadas ao mesmo PID e instante de criação. O alerta exige os dois campos; não relaciona processos só por compartilharem a máquina.",
+    "category": "correlation",
+    "severity": "CRITICAL",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "network.connection",
+          "process.remote_thread",
+          "process.tampering"
+        ]
+      }
+    ],
+    "group_by": [
+      "process.pid",
+      "process.created_at"
+    ],
+    "window_seconds": 300,
+    "sequence": [
+      [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "raw_event.direction",
+          "value": "inbound"
+        }
+      ],
+      [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "process.remote_thread",
+            "process.tampering"
+          ]
+        }
+      ]
+    ],
+    "mitre": [
+      "T1055"
+    ]
+  },
+  {
+    "id": "INBOUND_PORT_SCAN",
+    "name": "Suspeita de varredura de portas recebida",
+    "description": "A mesma origem atingiu pelo menos dez portas locais distintas em até sessenta segundos. Pode ser um scanner autorizado; confira IP, portas e registros permitidos/bloqueados. Cobertura depende da telemetria disponível.",
+    "category": "reconnaissance",
+    "severity": "HIGH",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "network.connection",
+          "network.blocked"
+        ]
+      },
+      {
+        "field": "raw_event.direction",
+        "value": "inbound"
+      }
+    ],
+    "group_by": [
+      "network.remote_ip"
+    ],
+    "threshold": 10,
+    "distinct_field": "network.local_port",
+    "distinct_threshold": 10,
+    "window_seconds": 60,
+    "mitre": [
+      "T1046"
+    ]
+  },
+  {
+    "id": "INBOUND_FLOOD",
+    "name": "Suspeita de DoS — grande volume de entrada",
+    "description": "Volume de bloqueios de entrada em 60 segundos: 200 da mesma origem. Conexões permitidas e descoberta mDNS/WSD não entram nesta regra. É suspeita, não confirmação de DoS. Eventos baixos descartados não participam da correlação.",
+    "category": "availability",
+    "severity": "CRITICAL",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "network.blocked"
+      },
+      {
+        "field": "raw_event.direction",
+        "value": "inbound"
+      }
+    ],
+    "group_by": [
+      "network.remote_ip",
+      "source"
+    ],
+    "threshold": 200,
+    "window_seconds": 60,
+    "mitre": [
+      "T1498"
+    ]
+  },
+  {
+    "id": "DISTRIBUTED_INBOUND_FLOOD",
+    "name": "Suspeita de DDoS — volume de múltiplas origens",
+    "description": "Volume de bloqueios de entrada em 60 segundos: 500 de pelo menos cinco origens. Conexões permitidas e descoberta mDNS/WSD não entram nesta regra. É suspeita, não confirmação de DoS. Eventos baixos descartados não participam da correlação.",
+    "category": "availability",
+    "severity": "CRITICAL",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "network.blocked"
+      },
+      {
+        "field": "raw_event.direction",
+        "value": "inbound"
+      }
+    ],
+    "group_by": [
+      "source"
+    ],
+    "threshold": 500,
+    "distinct_field": "network.remote_ip",
+    "distinct_threshold": 5,
+    "window_seconds": 60,
+    "mitre": [
+      "T1498"
+    ]
+  },
+  {
+    "id": "SUSPICIOUS_DOMAIN",
+    "name": "Consulta a domínio da lista de atenção",
+    "description": "Um programa consultou um domínio incluído na lista de atenção ou um subdomínio dele. Consulta DNS não comprova visita a uma página. A lista inicial contém somente suspicious.example, reservado para testes; o administrador deve cadastrar seus indicadores revisados.",
+    "category": "network",
+    "severity": "MEDIUM",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "network.dns"
+      },
+      {
+        "field": "raw_event.domain",
+        "op": "domain_suffix",
+        "value": [
+          "suspicious.example"
+        ]
+      }
+    ],
+    "tags": [
+      "domain-watchlist",
+      "local-policy"
+    ]
+  }
+]

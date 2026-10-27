@@ -1,0 +1,1303 @@
+{
+  "schema_version": 1,
+  "path_exclusions": [],
+  "rules": [
+    {
+      "id": "DEFENDER_REALTIME_OFF",
+      "name": "Defender informa proteção em tempo real inativa",
+      "description": "Na consulta de estado, a proteção em tempo real estava inativa. Confira se existe outro antivírus ativo ou se o Defender está em modo passivo. O agente não modifica configurações de proteção.",
+      "category": "coverage",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "antivirus.status"
+        },
+        {
+          "field": "raw_event.realtime_enabled",
+          "value": false
+        },
+        {
+          "field": "raw_event.health_changed",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "DEFENDER_SIGNATURES_OLD",
+      "name": "Definições do Defender estão desatualizadas",
+      "description": "A última consulta informou definições com sete dias ou mais. Confira as atualizações e se esse é o antivírus ativo da máquina.",
+      "category": "coverage",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "antivirus.status"
+        },
+        {
+          "field": "raw_event.signatures_age_days",
+          "op": "gte",
+          "value": 7
+        },
+        {
+          "field": "raw_event.health_changed",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "TEMP_EXECUTION",
+      "name": "Execução a partir de diretório temporário",
+      "description": "Processo executado em diretório temporário ou de downloads. Instaladores legítimos também podem gerar este alerta.",
+      "category": "execution",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "process.start"
+        },
+        {
+          "field": "process.path",
+          "op": "contains_any",
+          "value": [
+            "\\temp\\",
+            "/tmp/",
+            "\\downloads\\"
+          ]
+        }
+      ],
+      "tags": [
+        "behavior"
+      ],
+      "mitre": [
+        "T1204.002"
+      ]
+    },
+    {
+      "id": "FILE_CHANGE",
+      "name": "Arquivo monitorado alterado",
+      "description": "Alteração em caminho explicitamente monitorado. Verifique mudanças autorizadas.",
+      "category": "integrity",
+      "severity": "LOW",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "file.created",
+            "file.modified",
+            "file.deleted",
+            "file.moved"
+          ]
+        }
+      ],
+      "tags": [
+        "integrity"
+      ]
+    },
+    {
+      "id": "PERSISTENCE_CHANGE",
+      "name": "Mudança de persistência observada",
+      "description": "Registro, tarefa ou serviço com potencial de autostart sofreu alteração; a autoria deve ser investigada.",
+      "category": "persistence",
+      "severity": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "persistence.change"
+        }
+      ],
+      "mitre": [
+        "T1547.001",
+        "T1543.003"
+      ]
+    },
+    {
+      "id": "POWERSHELL_SIGNAL",
+      "name": "Sinal de risco em PowerShell",
+      "description": "Log de PowerShell contém operação que merece revisão. O conteúdo do script não foi armazenado.",
+      "category": "execution",
+      "severity": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "powershell.observed"
+        },
+        {
+          "field": "raw_event.powershell_signals",
+          "op": "contains_any",
+          "value": [
+            "frombase64string",
+            "downloadstring",
+            "encodedcommand",
+            "invoke-expression",
+            "amsi"
+          ]
+        }
+      ],
+      "mitre": [
+        "T1059.001"
+      ]
+    },
+    {
+      "id": "TELEMETRY_INTEGRITY",
+      "name": "Cobertura de telemetria degradada",
+      "description": "Permissão insuficiente, perda de eventos, reset de log ou componente indisponível reduz a cobertura de detecção.",
+      "category": "telemetry",
+      "severity": "MEDIUM",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "telemetry.integrity"
+        }
+      ],
+      "tags": [
+        "coverage"
+      ]
+    },
+    {
+      "id": "RESOURCE_ANOMALY",
+      "name": "Uso elevado de recursos",
+      "description": "Uso de CPU, memória ou disco excede o limite configurado. Não implica atividade maliciosa.",
+      "category": "anomaly",
+      "severity": "LOW",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "resource.anomaly"
+        }
+      ]
+    },
+    {
+      "id": "KNOWN_TEST_HASH",
+      "name": "Indicador sintético de laboratório",
+      "description": "Hash SHA-256 do texto benigno 'benign'. Regra desativada por padrão; substitua por indicadores de fontes confiáveis.",
+      "category": "indicator",
+      "severity": "HIGH",
+      "enabled": false,
+      "conditions": [
+        {
+          "field": "process.sha256",
+          "value": "56aea2f152b148a0886d27ff6b06f39b091c4f02ccb75c1aeef470e2d6c8e9c3"
+        }
+      ],
+      "tags": [
+        "synthetic"
+      ]
+    },
+    {
+      "id": "AUTH_FAILURE_BURST",
+      "name": "Falhas de autenticação repetidas",
+      "description": "Múltiplas falhas de autenticação para o mesmo usuário; podem indicar tentativa de acesso indevido ou configuração incorreta.",
+      "category": "credential_access",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "auth.failure"
+        }
+      ],
+      "group_by": [
+        "user"
+      ],
+      "threshold": 5,
+      "window_seconds": 300,
+      "mitre": [
+        "T1110"
+      ]
+    },
+    {
+      "id": "CONNECTION_BURST",
+      "name": "Processo com muitas conexões",
+      "description": "Um mesmo processo abriu várias conexões em uma janela curta. Verifique destino e atividade esperada.",
+      "category": "network",
+      "severity": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        }
+      ],
+      "group_by": [
+        "process.pid",
+        "process.created_at"
+      ],
+      "threshold": 20,
+      "window_seconds": 60
+    },
+    {
+      "id": "TEMP_THEN_NETWORK",
+      "name": "Processo temporário seguido de conexão",
+      "description": "Execução em diretório temporário seguida por conexão de rede do mesmo processo. A sequência aumenta a necessidade de investigação.",
+      "category": "correlation",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "process.start",
+            "network.connection"
+          ]
+        }
+      ],
+      "group_by": [
+        "process.pid",
+        "process.created_at"
+      ],
+      "window_seconds": 180,
+      "sequence": [
+        [
+          {
+            "field": "event_type",
+            "value": "process.start"
+          },
+          {
+            "field": "process.path",
+            "op": "contains_any",
+            "value": [
+              "\\Temp\\",
+              "/tmp/"
+            ]
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "value": "network.connection"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "PROCESS_THEN_PERSISTENCE",
+      "name": "Execução seguida de mudança de persistência",
+      "description": "Eventos com PID e instante de criação correlacionáveis mostram execução e alteração de persistência. Eventos sem esse contexto não são ligados artificialmente.",
+      "category": "persistence",
+      "severity": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "process.start",
+            "persistence.change"
+          ]
+        }
+      ],
+      "group_by": [
+        "process.pid",
+        "process.created_at"
+      ],
+      "window_seconds": 300,
+      "sequence": [
+        [
+          {
+            "field": "event_type",
+            "value": "process.start"
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "value": "persistence.change"
+          }
+        ]
+      ],
+      "mitre": [
+        "T1547.001"
+      ]
+    },
+    {
+      "id": "AUTH_FAILURE_MACHINE_BURST",
+      "name": "Falhas de autenticação distribuídas na máquina",
+      "description": "Múltiplas falhas, inclusive sem usuário identificado ou distribuídas entre contas. Complementa a detecção por usuário.",
+      "category": "credential_access",
+      "severity": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "auth.failure"
+        }
+      ],
+      "threshold": 10,
+      "window_seconds": 300,
+      "mitre": [
+        "T1110"
+      ]
+    },
+    {
+      "id": "SYSMON_TEMP_THEN_NETWORK",
+      "name": "Sysmon correlaciona execução temporária e rede",
+      "description": "ProcessGuid liga os eventos do Sysmon ao mesmo processo, sem confundir reutilização de PID.",
+      "category": "correlation",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "process.start",
+            "network.connection"
+          ]
+        }
+      ],
+      "group_by": [
+        "raw_event.process_guid"
+      ],
+      "window_seconds": 180,
+      "sequence": [
+        [
+          {
+            "field": "event_type",
+            "value": "process.start"
+          },
+          {
+            "field": "process.path",
+            "op": "contains_any",
+            "value": [
+              "\\Temp\\",
+              "/tmp/"
+            ]
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "value": "network.connection"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "DOWNLOAD_CRITICAL_POLICY",
+      "name": "Arquivo em Downloads — crítico por extensão ou link",
+      "description": "Novo arquivo ou alteração estabilizada em Downloads com extensão .py, .vbs, .htm ou .bat, ou link encontrado no conteúdo analisado. CRÍTICO por política administrativa, inclusive para links legítimos. Não comprova malware nem origem de download: arquivos copiados também podem produzir este registro. Consulte link_found, extension e analysis_status nas evidências.",
+      "category": "policy",
+      "severity": "CRITICAL",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "file.download_observed"
+        },
+        {
+          "field": "severity",
+          "value": "CRITICAL"
+        }
+      ],
+      "tags": [
+        "downloads",
+        "local-policy"
+      ]
+    },
+    {
+      "id": "DOWNLOAD_OBSERVED",
+      "name": "Novo arquivo ou alteração em Downloads",
+      "description": "Arquivo observado em Downloads após estabilização de tamanho e data de alteração. Prioridade MÉDIA por política. Pode ser download, cópia ou alteração local. Consulte analysis_status: ausência de link encontrado não comprova segurança; formatos não suportados, imagens, QR codes, senhas e limites podem impedir análise completa.",
+      "category": "policy",
+      "severity": "MEDIUM",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "file.download_observed"
+        },
+        {
+          "field": "severity",
+          "value": "MEDIUM"
+        }
+      ],
+      "tags": [
+        "downloads"
+      ]
+    },
+    {
+      "id": "DOWNLOAD_HIGH_REVIEW",
+      "name": "DLL em Downloads ou análise de PDF incompleta",
+      "description": "Prioridade ALTA: DLL observada em Downloads, ou PDF cuja análise ficou incompleta por senha, formato, falta de texto extraível ou limites. Consulte extensão e analysis_status. Nenhum arquivo foi executado; isto não comprova malware.",
+      "category": "policy",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "file.download_observed"
+        },
+        {
+          "field": "severity",
+          "value": "HIGH"
+        }
+      ],
+      "tags": [
+        "downloads",
+        "visibility"
+      ]
+    },
+    {
+      "id": "DEFENDER_THREAT",
+      "name": "Defender detectou uma ameaça ou programa indesejado",
+      "description": "O antivírus registrou uma detecção de ameaça ou programa indesejado. A política atribui prioridade crítica a qualquer detecção, incluindo Backdoor, Trojan, Ransomware e Keylogger. Confira o nome exato e a ação: o registro pode ser histórico ou já tratado; não comprova que a ameaça permanece ativa.",
+      "category": "antivirus",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "antivirus.detected"
+        }
+      ],
+      "tags": [
+        "defender"
+      ]
+    },
+    {
+      "id": "DEFENDER_ACTION_FAILED",
+      "name": "Defender não conseguiu concluir uma ação de proteção",
+      "description": "O antivírus informou falha ao tratar uma ameaça. Prioridade urgente: confirme o estado no Defender e siga o procedimento de resposta a incidentes.",
+      "category": "antivirus",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "antivirus.remediation_failed"
+        }
+      ],
+      "tags": [
+        "defender"
+      ]
+    },
+    {
+      "id": "DEFENDER_ACTION",
+      "name": "Defender registrou uma ação sobre uma ameaça",
+      "description": "Consulte a ação informada: ela pode ser quarentena, remoção, bloqueio ou permissão. Este evento não resolve automaticamente alertas anteriores nem confirma que a máquina está limpa.",
+      "category": "antivirus",
+      "severity": "MEDIUM",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "antivirus.action"
+        }
+      ],
+      "tags": [
+        "defender"
+      ]
+    },
+    {
+      "id": "DEFENDER_DISABLED",
+      "name": "Uma proteção do Defender foi desativada",
+      "description": "Um componente de proteção foi desativado. Pode ser configuração administrativa ou uso de outro antivírus; confirme se a máquina continua protegida.",
+      "category": "defense_evasion",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "antivirus.protection_disabled"
+        }
+      ],
+      "tags": [
+        "coverage"
+      ],
+      "mitre": [
+        "T1562.001"
+      ]
+    },
+    {
+      "id": "DEFENDER_CONFIGURATION",
+      "name": "Configuração do Defender foi alterada",
+      "description": "Houve uma mudança de configuração. Atualizações e administração legítima também geram esse evento. Não implica, sozinho, desativação do antivírus.",
+      "category": "antivirus",
+      "severity": "LOW",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "antivirus.configuration_changed"
+        }
+      ]
+    },
+    {
+      "id": "SYSMON_REMOTE_THREAD",
+      "name": "Programa criou uma execução dentro de outro processo",
+      "description": "O Sysmon observou uma thread criada em outro processo. Pode indicar injeção de código; ferramentas de segurança e depuração também fazem isso. Confira os programas de origem e destino.",
+      "category": "execution",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "process.remote_thread"
+        }
+      ],
+      "mitre": [
+        "T1055"
+      ]
+    },
+    {
+      "id": "SYSMON_PROCESS_TAMPERING",
+      "name": "Sysmon identificou alteração da imagem de um processo",
+      "description": "O Sysmon registrou manipulação da imagem de um processo, comportamento associado a técnicas de ocultação de código. Requer investigação urgente; a regra não identifica por si só a família de malware.",
+      "category": "defense_evasion",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "process.tampering"
+        }
+      ],
+      "mitre": [
+        "T1055"
+      ]
+    },
+    {
+      "id": "PROCESS_PERSISTENCE_NETWORK",
+      "name": "Programa iniciou, alterou início automático e acessou a rede",
+      "description": "Três atividades foram ligadas ao mesmo PID e instante de criação em até cinco minutos. Essa combinação aumenta a prioridade de investigação. Instaladores autorizados podem apresentar comportamento semelhante.",
+      "category": "correlation",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "process.start",
+            "persistence.change",
+            "network.connection"
+          ]
+        }
+      ],
+      "group_by": [
+        "process.pid",
+        "process.created_at"
+      ],
+      "window_seconds": 300,
+      "sequence": [
+        [
+          {
+            "field": "event_type",
+            "value": "process.start"
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "value": "persistence.change"
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "value": "network.connection"
+          }
+        ]
+      ],
+      "mitre": [
+        "T1547.001"
+      ]
+    },
+    {
+      "id": "SYSMON_PERSISTENCE_NETWORK",
+      "name": "Sysmon ligou execução, início automático e rede",
+      "description": "O identificador único de processo do Sysmon liga execução, mudança de persistência e conexão de rede em até cinco minutos. Investigue se houve instalação autorizada.",
+      "category": "correlation",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "process.start",
+            "persistence.change",
+            "network.connection"
+          ]
+        }
+      ],
+      "group_by": [
+        "raw_event.process_guid"
+      ],
+      "window_seconds": 300,
+      "sequence": [
+        [
+          {
+            "field": "event_type",
+            "value": "process.start"
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "value": "persistence.change"
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "value": "network.connection"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "POSSIBLE_CLEARTEXT_HTTP",
+      "name": "Possível acesso HTTP sem HTTPS",
+      "description": "Foi observada uma conexão TCP de saída ou de direção desconhecida para a porta remota 80 ou 8080, habitualmente usada por HTTP. Prioridade alta para revisão. A coleta de conexões não inspeciona o protocolo nem o conteúdo: isso não confirma visita a uma página, transmissão de dados sem criptografia ou ausência de redirecionamento para HTTPS. HTTP em outras portas pode não ser identificado.",
+      "category": "network",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "network.protocol",
+          "value": "TCP"
+        },
+        {
+          "field": "network.remote_port",
+          "op": "in",
+          "value": [
+            80,
+            8080
+          ]
+        },
+        {
+          "field": "raw_event.direction",
+          "op": "in",
+          "value": [
+            "outbound",
+            "unknown"
+          ]
+        }
+      ],
+      "tags": [
+        "possible-http",
+        "metadata-only"
+      ]
+    },
+    {
+      "id": "POSSIBLE_CLEARTEXT_HTTP_NO_DIRECTION",
+      "name": "Possível acesso HTTP sem HTTPS",
+      "description": "Foi observada uma conexão TCP de saída ou de direção desconhecida para a porta remota 80 ou 8080, habitualmente usada por HTTP. Prioridade alta para revisão. A coleta de conexões não inspeciona o protocolo nem o conteúdo: isso não confirma visita a uma página, transmissão de dados sem criptografia ou ausência de redirecionamento para HTTPS. HTTP em outras portas pode não ser identificado. A fonte não informou a direção; a prioridade é preventiva e a confiança é baixa.",
+      "category": "network",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "network.protocol",
+          "value": "TCP"
+        },
+        {
+          "field": "network.remote_port",
+          "op": "in",
+          "value": [
+            80,
+            8080
+          ]
+        },
+        {
+          "field": "raw_event.direction",
+          "op": "exists",
+          "value": false
+        }
+      ],
+      "tags": [
+        "possible-http",
+        "metadata-only"
+      ]
+    },
+    {
+      "id": "OUTBOUND_PORT_SCAN",
+      "name": "Suspeita de varredura de portas originada nesta máquina",
+      "description": "A máquina monitorada apresentou conexões para pelo menos vinte portas distintas do mesmo destino em sessenta segundos, na mesma fonte de coleta. Pode indicar varredura de portas ou uma ferramenta administrativa autorizada. A direção pode ser de saída ou desconhecida; conexões de entrada identificadas não entram nesta regra. Confira processo, destino e autorização.",
+      "category": "reconnaissance",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "raw_event.direction",
+          "op": "in",
+          "value": [
+            "outbound",
+            "unknown"
+          ]
+        },
+        {
+          "field": "network.remote_ip",
+          "op": "exists"
+        },
+        {
+          "field": "network.remote_port",
+          "op": "exists"
+        }
+      ],
+      "group_by": [
+        "network.remote_ip",
+        "source"
+      ],
+      "threshold": 20,
+      "distinct_field": "network.remote_port",
+      "distinct_threshold": 20,
+      "window_seconds": 60,
+      "mitre": [
+        "T1046"
+      ]
+    },
+    {
+      "id": "REMOTE_ACCESS_INBOUND",
+      "name": "Conexão recebida em porta de acesso ou administração remota",
+      "description": "Foi observada uma conexão de entrada em uma porta usada por RDP, SSH, Telnet, VNC ou WinRM. A origem não corresponde aos IPs configurados para o servidor SIEM. Prioridade alta por política de acesso remoto. A porta não comprova autenticação, controle efetivo ou ataque; confira origem, processo e autorização.",
+      "category": "remote-access",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "network.protocol",
+          "value": "TCP"
+        },
+        {
+          "field": "raw_event.direction",
+          "value": "inbound"
+        },
+        {
+          "field": "network.remote_ip",
+          "op": "exists"
+        },
+        {
+          "field": "network.local_port",
+          "op": "in",
+          "value": [
+            22,
+            23,
+            3389,
+            5900,
+            5901,
+            5902,
+            5903,
+            5904,
+            5905,
+            5985,
+            5986
+          ]
+        }
+      ],
+      "tags": [
+        "remote-access-policy"
+      ]
+    },
+    {
+      "id": "REMOTE_ACCESS_OUTBOUND",
+      "name": "Conexão a outro computador em porta de acesso remoto",
+      "description": "A máquina apresentou conexão TCP a uma porta remota usada por RDP, SSH, Telnet, VNC ou WinRM. O destino não é um dos IPs configurados para o servidor SIEM. A direção é de saída ou desconhecida. Prioridade alta para conferir se o acesso foi autorizado; isso não confirma uma sessão autenticada nem malware.",
+      "category": "remote-access",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "network.protocol",
+          "value": "TCP"
+        },
+        {
+          "field": "raw_event.direction",
+          "op": "in",
+          "value": [
+            "outbound",
+            "unknown"
+          ]
+        },
+        {
+          "field": "network.remote_ip",
+          "op": "exists"
+        },
+        {
+          "field": "network.remote_port",
+          "op": "in",
+          "value": [
+            22,
+            23,
+            3389,
+            5900,
+            5901,
+            5902,
+            5903,
+            5904,
+            5905,
+            5985,
+            5986
+          ]
+        }
+      ],
+      "tags": [
+        "remote-access-policy"
+      ]
+    },
+    {
+      "id": "REMOTE_ACCESS_TOOL_NETWORK",
+      "name": "Ferramenta de acesso remoto conectada à rede",
+      "description": "Um processo com nome de ferramenta conhecida de acesso remoto apresentou conexão a um destino diferente dos IPs do servidor SIEM. Inclui sinalização e comunicação com servidores da ferramenta, mesmo sem alguém controlando a tela. Prioridade alta por política; confirme o executável e a autorização. Ferramentas renomeadas ou desconhecidas podem não ser identificadas por esta regra.",
+      "category": "remote-access",
+      "severity": "HIGH",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "network.remote_ip",
+          "op": "exists"
+        },
+        {
+          "field": "process.name",
+          "op": "in",
+          "value": [
+            "anydesk.exe",
+            "teamviewer.exe",
+            "teamviewer_service.exe",
+            "rustdesk.exe",
+            "tvnserver.exe",
+            "winvnc.exe",
+            "vncviewer.exe",
+            "mstsc.exe",
+            "msrdc.exe",
+            "quickassist.exe"
+          ]
+        }
+      ],
+      "tags": [
+        "remote-access-policy",
+        "process-name-indicator"
+      ]
+    },
+    {
+      "id": "EXPOSED_SENSITIVE_PORT",
+      "name": "Porta local sensível aberta por política",
+      "description": "O agente observou um socket TCP em escuta ou UDP vinculado a uma das portas definidas pelo administrador. Isso não comprova acesso pela Internet nem invasão: confira endereço local, firewall e programa responsável.",
+      "category": "exposure",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "network.listen",
+            "network.bind"
+          ]
+        },
+        {
+          "field": "network.local_port",
+          "op": "in",
+          "value": [
+            3389,
+            4444,
+            22,
+            23,
+            137,
+            138,
+            139,
+            445,
+            20,
+            21,
+            3306,
+            1433,
+            5432,
+            31337,
+            6660,
+            6669
+          ]
+        }
+      ],
+      "tags": [
+        "policy",
+        "local-port"
+      ]
+    },
+    {
+      "id": "INBOUND_64668",
+      "name": "Conexão de entrada na porta local 64668",
+      "description": "Uma conexão recebida na porta 64668 foi observada. A direção vem do log do Windows ou de correspondência com um socket em escuta; investigue o programa e a origem.",
+      "category": "network",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "raw_event.direction",
+          "value": "inbound"
+        },
+        {
+          "field": "network.local_port",
+          "value": 64668
+        }
+      ]
+    },
+    {
+      "id": "POLICY_SCRIPT_HTML",
+      "name": "Arquivo PY, VBS, HTM ou BAT observado — crítico por política",
+      "description": "Uma das extensões .py, .vbs, .htm ou .bat foi observada em pasta monitorada. A criticidade é uma política administrativa; a extensão não comprova infecção. Confira caminho e origem.",
+      "category": "policy",
+      "severity": "CRITICAL",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "file.present",
+            "file.created",
+            "file.modified",
+            "file.moved"
+          ]
+        },
+        {
+          "field": "file.path",
+          "op": "ends_with",
+          "value": [
+            ".py",
+            ".vbs",
+            ".htm",
+            ".bat"
+          ]
+        },
+        {
+          "field": "raw_event.directory",
+          "value": false
+        }
+      ],
+      "tags": [
+        "policy",
+        "extension"
+      ]
+    },
+    {
+      "id": "POLICY_SCRIPT_HTML_MOVED",
+      "name": "Arquivo PY, VBS, HTM ou BAT observado — crítico por política",
+      "description": "Uma das extensões .py, .vbs, .htm ou .bat foi observada em pasta monitorada. A criticidade é uma política administrativa; a extensão não comprova infecção. Confira caminho e origem.",
+      "category": "policy",
+      "severity": "CRITICAL",
+      "confidence": "LOW",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "file.moved"
+        },
+        {
+          "field": "file.destination",
+          "op": "ends_with",
+          "value": [
+            ".py",
+            ".vbs",
+            ".htm",
+            ".bat"
+          ]
+        },
+        {
+          "field": "raw_event.directory",
+          "value": false
+        }
+      ],
+      "tags": [
+        "policy",
+        "extension"
+      ]
+    },
+    {
+      "id": "REMOTE_EXECUTION_SUSPECT",
+      "name": "Entrada remota seguida de manipulação de processo",
+      "description": "O mesmo identificador de processo do Sysmon recebeu uma conexão e depois apresentou criação de thread remota ou manipulação de imagem em até cinco minutos. Pode indicar execução remota maliciosa; confirme as evidências e atividades autorizadas.",
+      "category": "correlation",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "network.connection",
+            "process.remote_thread",
+            "process.tampering"
+          ]
+        }
+      ],
+      "group_by": [
+        "raw_event.process_guid"
+      ],
+      "window_seconds": 300,
+      "sequence": [
+        [
+          {
+            "field": "event_type",
+            "value": "network.connection"
+          },
+          {
+            "field": "raw_event.direction",
+            "value": "inbound"
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "op": "in",
+            "value": [
+              "process.remote_thread",
+              "process.tampering"
+            ]
+          }
+        ]
+      ],
+      "mitre": [
+        "T1055"
+      ]
+    },
+    {
+      "id": "REMOTE_EXECUTION_PROCESS",
+      "name": "Entrada remota e manipulação no mesmo processo identificado",
+      "description": "Conexão de entrada e manipulação de processo ligadas ao mesmo PID e instante de criação. O alerta exige os dois campos; não relaciona processos só por compartilharem a máquina.",
+      "category": "correlation",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "network.connection",
+            "process.remote_thread",
+            "process.tampering"
+          ]
+        }
+      ],
+      "group_by": [
+        "process.pid",
+        "process.created_at"
+      ],
+      "window_seconds": 300,
+      "sequence": [
+        [
+          {
+            "field": "event_type",
+            "value": "network.connection"
+          },
+          {
+            "field": "raw_event.direction",
+            "value": "inbound"
+          }
+        ],
+        [
+          {
+            "field": "event_type",
+            "op": "in",
+            "value": [
+              "process.remote_thread",
+              "process.tampering"
+            ]
+          }
+        ]
+      ],
+      "mitre": [
+        "T1055"
+      ]
+    },
+    {
+      "id": "INBOUND_PORT_SCAN",
+      "name": "Suspeita de varredura de portas recebida",
+      "description": "A mesma origem atingiu pelo menos dez portas locais distintas em até sessenta segundos. Pode ser um scanner autorizado; confira IP, portas e registros permitidos/bloqueados. Cobertura depende da telemetria disponível.",
+      "category": "reconnaissance",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "op": "in",
+          "value": [
+            "network.connection",
+            "network.blocked"
+          ]
+        },
+        {
+          "field": "raw_event.direction",
+          "value": "inbound"
+        }
+      ],
+      "group_by": [
+        "network.remote_ip"
+      ],
+      "threshold": 10,
+      "distinct_field": "network.local_port",
+      "distinct_threshold": 10,
+      "window_seconds": 60,
+      "mitre": [
+        "T1046"
+      ]
+    },
+    {
+      "id": "INBOUND_FLOOD",
+      "name": "Suspeita de DoS — grande volume de entrada",
+      "description": "Volume de bloqueios de entrada em 60 segundos: 200 da mesma origem. Conexões permitidas e descoberta mDNS/WSD não entram nesta regra. É suspeita, não confirmação de DoS. Eventos baixos descartados não participam da correlação.",
+      "category": "availability",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.blocked"
+        },
+        {
+          "field": "raw_event.direction",
+          "value": "inbound"
+        }
+      ],
+      "group_by": [
+        "network.remote_ip",
+        "source"
+      ],
+      "threshold": 200,
+      "window_seconds": 60,
+      "mitre": [
+        "T1498"
+      ]
+    },
+    {
+      "id": "DISTRIBUTED_INBOUND_FLOOD",
+      "name": "Suspeita de DDoS — volume de múltiplas origens",
+      "description": "Volume de bloqueios de entrada em 60 segundos: 500 de pelo menos cinco origens. Conexões permitidas e descoberta mDNS/WSD não entram nesta regra. É suspeita, não confirmação de DoS. Eventos baixos descartados não participam da correlação.",
+      "category": "availability",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.blocked"
+        },
+        {
+          "field": "raw_event.direction",
+          "value": "inbound"
+        }
+      ],
+      "group_by": [
+        "source"
+      ],
+      "threshold": 500,
+      "distinct_field": "network.remote_ip",
+      "distinct_threshold": 5,
+      "window_seconds": 60,
+      "mitre": [
+        "T1498"
+      ]
+    },
+    {
+      "id": "SUSPICIOUS_DOMAIN",
+      "name": "Consulta a domínio da lista de atenção",
+      "description": "Um programa consultou um domínio incluído na lista de atenção ou um subdomínio dele. Consulta DNS não comprova visita a uma página. A lista inicial contém somente suspicious.example, reservado para testes; o administrador deve cadastrar seus indicadores revisados.",
+      "category": "network",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.dns"
+        },
+        {
+          "field": "raw_event.domain",
+          "op": "domain_suffix",
+          "value": [
+            "suspicious.example"
+          ]
+        }
+      ],
+      "tags": [
+        "domain-watchlist",
+        "local-policy"
+      ]
+    },
+    {
+      "id": "USER_FOLDER_REMOTE_4444",
+      "name": "Programa de Downloads ou pasta temporária conectado à porta remota 4444",
+      "description": "Um programa executado de Downloads ou de uma pasta Temp estabeleceu uma conexão TCP com a porta remota 4444. A combinação recebe prioridade crítica por política, mesmo quando a direção não é determinada. Pode indicar um canal de controle remoto e exige investigação. Confira programa, caminho e destino; ferramentas legítimas também podem apresentar essa combinação. O nome do arquivo não é usado como prova de malware.",
+      "category": "network",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "conditions": [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        },
+        {
+          "field": "network.protocol",
+          "value": "TCP"
+        },
+        {
+          "field": "network.remote_port",
+          "value": 4444
+        },
+        {
+          "field": "network.remote_ip",
+          "op": "exists"
+        },
+        {
+          "field": "process.path",
+          "op": "contains_any",
+          "value": [
+            "\\downloads\\",
+            "/downloads/",
+            "\\temp\\",
+            "/temp/"
+          ]
+        }
+      ],
+      "tags": [
+        "policy",
+        "suspicious-remote-control",
+        "user-folder"
+      ]
+    }
+  ],
+  "suppress_severities": [
+    "LOW"
+  ],
+  "disabled_rule_ids": [
+    "TELEMETRY_LOST"
+  ],
+  "mandatory_severities": [
+    "HIGH",
+    "CRITICAL"
+  ],
+  "extension_exclusions": [],
+  "process_exclusions": [],
+  "ignored_remote_ips": []
+}

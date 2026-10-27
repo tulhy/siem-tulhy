@@ -1,0 +1,75 @@
+[
+  {
+    "id": "POSSIBLE_CLEARTEXT_HTTP",
+    "name": "Possível acesso HTTP sem HTTPS",
+    "description": "Foi observada uma conexão TCP de saída ou de direção desconhecida para a porta remota 80 ou 8080, habitualmente usada por HTTP. Prioridade alta para revisão. A coleta de conexões não inspeciona o protocolo nem o conteúdo: isso não confirma visita a uma página, transmissão de dados sem criptografia ou ausência de redirecionamento para HTTPS. HTTP em outras portas pode não ser identificado.",
+    "category": "network",
+    "severity": "HIGH",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "network.connection"
+      },
+      {
+        "field": "network.protocol",
+        "value": "TCP"
+      },
+      {
+        "field": "network.remote_port",
+        "op": "in",
+        "value": [
+          80,
+          8080
+        ]
+      },
+      {
+        "field": "raw_event.direction",
+        "op": "in",
+        "value": [
+          "outbound",
+          "unknown"
+        ]
+      }
+    ],
+    "tags": [
+      "possible-http",
+      "metadata-only"
+    ]
+  },
+  {
+    "id": "POSSIBLE_CLEARTEXT_HTTP_NO_DIRECTION",
+    "name": "Possível acesso HTTP sem HTTPS",
+    "description": "Foi observada uma conexão TCP de saída ou de direção desconhecida para a porta remota 80 ou 8080, habitualmente usada por HTTP. Prioridade alta para revisão. A coleta de conexões não inspeciona o protocolo nem o conteúdo: isso não confirma visita a uma página, transmissão de dados sem criptografia ou ausência de redirecionamento para HTTPS. HTTP em outras portas pode não ser identificado. A fonte não informou a direção; a prioridade é preventiva e a confiança é baixa.",
+    "category": "network",
+    "severity": "HIGH",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "network.connection"
+      },
+      {
+        "field": "network.protocol",
+        "value": "TCP"
+      },
+      {
+        "field": "network.remote_port",
+        "op": "in",
+        "value": [
+          80,
+          8080
+        ]
+      },
+      {
+        "field": "raw_event.direction",
+        "op": "exists",
+        "value": false
+      }
+    ],
+    "tags": [
+      "possible-http",
+      "metadata-only"
+    ]
+  }
+]

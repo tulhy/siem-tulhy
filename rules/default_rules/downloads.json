@@ -1,0 +1,67 @@
+[
+  {
+    "id": "DOWNLOAD_CRITICAL_POLICY",
+    "name": "Arquivo em Downloads — crítico por extensão ou link",
+    "description": "Novo arquivo ou alteração estabilizada em Downloads com extensão .py, .vbs, .htm ou .bat, ou link encontrado no conteúdo analisado. CRÍTICO por política administrativa, inclusive para links legítimos. Não comprova malware nem origem de download: arquivos copiados também podem produzir este registro. Consulte link_found, extension e analysis_status nas evidências.",
+    "category": "policy",
+    "severity": "CRITICAL",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "file.download_observed"
+      },
+      {
+        "field": "severity",
+        "value": "CRITICAL"
+      }
+    ],
+    "tags": [
+      "downloads",
+      "local-policy"
+    ]
+  },
+  {
+    "id": "DOWNLOAD_OBSERVED",
+    "name": "Novo arquivo ou alteração em Downloads",
+    "description": "Arquivo observado em Downloads após estabilização de tamanho e data de alteração. Prioridade MÉDIA por política. Pode ser download, cópia ou alteração local. Consulte analysis_status: ausência de link encontrado não comprova segurança; formatos não suportados, imagens, QR codes, senhas e limites podem impedir análise completa.",
+    "category": "policy",
+    "severity": "MEDIUM",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "file.download_observed"
+      },
+      {
+        "field": "severity",
+        "value": "MEDIUM"
+      }
+    ],
+    "tags": [
+      "downloads"
+    ]
+  },
+  {
+    "id": "DOWNLOAD_HIGH_REVIEW",
+    "name": "DLL em Downloads ou análise de PDF incompleta",
+    "description": "Prioridade ALTA: DLL observada em Downloads, ou PDF cuja análise ficou incompleta por senha, formato, falta de texto extraível ou limites. Consulte extensão e analysis_status. Nenhum arquivo foi executado; isto não comprova malware.",
+    "category": "policy",
+    "severity": "HIGH",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "file.download_observed"
+      },
+      {
+        "field": "severity",
+        "value": "HIGH"
+      }
+    ],
+    "tags": [
+      "downloads",
+      "visibility"
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+Extraia na pasta do agente existente, onde estao credentials.json, config.yaml e server-ca.pem.
+Pare o agente antigo com Ctrl+C e espere encerrar.
+Instale Python 3.12+ para todos os usuarios em Program Files.
+Execute INSTALAR_SERVICO.cmd como administrador. Aguarde Running.
+O servico inicia automaticamente com o Windows. Nao execute INICIAR_AGENTE.cmd junto.
+Nao copie o pacote individual de uma maquina para outra.

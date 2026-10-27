@@ -1,0 +1,18 @@
+server_url: https://localhost:8443
+agent_name: ''  # Empty uses socket.gethostname(); must match server registration.
+data_dir: data/agent
+collection_interval: 5
+batch_size: 100
+heartbeat_interval: 30
+queue_max_size: 100000
+queue_max_bytes: 256000000
+timeout: 15
+log_level: INFO
+monitor_paths: []  # Select security-relevant directories; avoid entire disks and the queue directory.
+collect_command_lines: false
+hash_max_bytes: 50000000
+windows_events: true
+windows_lookback_seconds: 300
+cpu_threshold: 90
+memory_threshold: 90
+disk_threshold: 95

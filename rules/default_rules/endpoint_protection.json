@@ -1,0 +1,211 @@
+[
+  {
+    "id": "DEFENDER_THREAT",
+    "name": "Defender detectou uma ameaça ou programa indesejado",
+    "description": "O antivírus registrou uma detecção de ameaça ou programa indesejado. A política atribui prioridade crítica a qualquer detecção, incluindo Backdoor, Trojan, Ransomware e Keylogger. Confira o nome exato e a ação: o registro pode ser histórico ou já tratado; não comprova que a ameaça permanece ativa.",
+    "category": "antivirus",
+    "severity": "CRITICAL",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "antivirus.detected"
+      }
+    ],
+    "tags": [
+      "defender"
+    ]
+  },
+  {
+    "id": "DEFENDER_ACTION_FAILED",
+    "name": "Defender não conseguiu concluir uma ação de proteção",
+    "description": "O antivírus informou falha ao tratar uma ameaça. Prioridade urgente: confirme o estado no Defender e siga o procedimento de resposta a incidentes.",
+    "category": "antivirus",
+    "severity": "CRITICAL",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "antivirus.remediation_failed"
+      }
+    ],
+    "tags": [
+      "defender"
+    ]
+  },
+  {
+    "id": "DEFENDER_ACTION",
+    "name": "Defender registrou uma ação sobre uma ameaça",
+    "description": "Consulte a ação informada: ela pode ser quarentena, remoção, bloqueio ou permissão. Este evento não resolve automaticamente alertas anteriores nem confirma que a máquina está limpa.",
+    "category": "antivirus",
+    "severity": "MEDIUM",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "antivirus.action"
+      }
+    ],
+    "tags": [
+      "defender"
+    ]
+  },
+  {
+    "id": "DEFENDER_DISABLED",
+    "name": "Uma proteção do Defender foi desativada",
+    "description": "Um componente de proteção foi desativado. Pode ser configuração administrativa ou uso de outro antivírus; confirme se a máquina continua protegida.",
+    "category": "defense_evasion",
+    "severity": "HIGH",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "antivirus.protection_disabled"
+      }
+    ],
+    "tags": [
+      "coverage"
+    ],
+    "mitre": [
+      "T1562.001"
+    ]
+  },
+  {
+    "id": "DEFENDER_CONFIGURATION",
+    "name": "Configuração do Defender foi alterada",
+    "description": "Houve uma mudança de configuração. Atualizações e administração legítima também geram esse evento. Não implica, sozinho, desativação do antivírus.",
+    "category": "antivirus",
+    "severity": "LOW",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "antivirus.configuration_changed"
+      }
+    ]
+  },
+  {
+    "id": "SYSMON_REMOTE_THREAD",
+    "name": "Programa criou uma execução dentro de outro processo",
+    "description": "O Sysmon observou uma thread criada em outro processo. Pode indicar injeção de código; ferramentas de segurança e depuração também fazem isso. Confira os programas de origem e destino.",
+    "category": "execution",
+    "severity": "HIGH",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "process.remote_thread"
+      }
+    ],
+    "mitre": [
+      "T1055"
+    ]
+  },
+  {
+    "id": "SYSMON_PROCESS_TAMPERING",
+    "name": "Sysmon identificou alteração da imagem de um processo",
+    "description": "O Sysmon registrou manipulação da imagem de um processo, comportamento associado a técnicas de ocultação de código. Requer investigação urgente; a regra não identifica por si só a família de malware.",
+    "category": "defense_evasion",
+    "severity": "CRITICAL",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "process.tampering"
+      }
+    ],
+    "mitre": [
+      "T1055"
+    ]
+  },
+  {
+    "id": "PROCESS_PERSISTENCE_NETWORK",
+    "name": "Programa iniciou, alterou início automático e acessou a rede",
+    "description": "Três atividades foram ligadas ao mesmo PID e instante de criação em até cinco minutos. Essa combinação aumenta a prioridade de investigação. Instaladores autorizados podem apresentar comportamento semelhante.",
+    "category": "correlation",
+    "severity": "CRITICAL",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "process.start",
+          "persistence.change",
+          "network.connection"
+        ]
+      }
+    ],
+    "group_by": [
+      "process.pid",
+      "process.created_at"
+    ],
+    "window_seconds": 300,
+    "sequence": [
+      [
+        {
+          "field": "event_type",
+          "value": "process.start"
+        }
+      ],
+      [
+        {
+          "field": "event_type",
+          "value": "persistence.change"
+        }
+      ],
+      [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        }
+      ]
+    ],
+    "mitre": [
+      "T1547.001"
+    ]
+  },
+  {
+    "id": "SYSMON_PERSISTENCE_NETWORK",
+    "name": "Sysmon ligou execução, início automático e rede",
+    "description": "O identificador único de processo do Sysmon liga execução, mudança de persistência e conexão de rede em até cinco minutos. Investigue se houve instalação autorizada.",
+    "category": "correlation",
+    "severity": "CRITICAL",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "process.start",
+          "persistence.change",
+          "network.connection"
+        ]
+      }
+    ],
+    "group_by": [
+      "raw_event.process_guid"
+    ],
+    "window_seconds": 300,
+    "sequence": [
+      [
+        {
+          "field": "event_type",
+          "value": "process.start"
+        }
+      ],
+      [
+        {
+          "field": "event_type",
+          "value": "persistence.change"
+        }
+      ],
+      [
+        {
+          "field": "event_type",
+          "value": "network.connection"
+        }
+      ]
+    ]
+  }
+]

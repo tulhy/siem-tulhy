@@ -1,0 +1,17 @@
+{
+    email {$ACME_EMAIL}
+    servers {
+        timeouts {
+            read_body 20s
+            read_header 10s
+            idle 60s
+        }
+    }
+}
+{$SIEM_DOMAIN} {
+    request_body {
+        max_size 1MB
+    }
+    header Strict-Transport-Security "max-age=31536000"
+    reverse_proxy server:8000
+}

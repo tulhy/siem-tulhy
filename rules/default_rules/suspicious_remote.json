@@ -1,0 +1,18 @@
+[
+  {
+    "id": "USER_FOLDER_REMOTE_4444",
+    "name": "Programa de Downloads ou pasta temporária conectado à porta remota 4444",
+    "description": "Um programa executado de Downloads ou de uma pasta Temp estabeleceu uma conexão TCP com a porta remota 4444. A combinação recebe prioridade crítica por política, mesmo quando a direção não é determinada. Pode indicar um canal de controle remoto e exige investigação. Confira programa, caminho e destino; ferramentas legítimas também podem apresentar essa combinação. O nome do arquivo não é usado como prova de malware.",
+    "category": "network",
+    "severity": "CRITICAL",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {"field": "event_type", "value": "network.connection"},
+      {"field": "network.protocol", "value": "TCP"},
+      {"field": "network.remote_port", "value": 4444},
+      {"field": "network.remote_ip", "op": "exists"},
+      {"field": "process.path", "op": "contains_any", "value": ["\\downloads\\", "/downloads/", "\\temp\\", "/temp/"]}
+    ],
+    "tags": ["policy", "suspicious-remote-control", "user-folder"]
+  }
+]

@@ -1,0 +1,43 @@
+[
+  {
+    "id": "OUTBOUND_PORT_SCAN",
+    "name": "Suspeita de varredura de portas originada nesta máquina",
+    "description": "A máquina monitorada apresentou conexões para pelo menos vinte portas distintas do mesmo destino em sessenta segundos, na mesma fonte de coleta. Pode indicar varredura de portas ou uma ferramenta administrativa autorizada. A direção pode ser de saída ou desconhecida; conexões de entrada identificadas não entram nesta regra. Confira processo, destino e autorização.",
+    "category": "reconnaissance",
+    "severity": "HIGH",
+    "confidence": "MEDIUM",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "network.connection"
+      },
+      {
+        "field": "raw_event.direction",
+        "op": "in",
+        "value": [
+          "outbound",
+          "unknown"
+        ]
+      },
+      {
+        "field": "network.remote_ip",
+        "op": "exists"
+      },
+      {
+        "field": "network.remote_port",
+        "op": "exists"
+      }
+    ],
+    "group_by": [
+      "network.remote_ip",
+      "source"
+    ],
+    "threshold": 20,
+    "distinct_field": "network.remote_port",
+    "distinct_threshold": 20,
+    "window_seconds": 60,
+    "mitre": [
+      "T1046"
+    ]
+  }
+]

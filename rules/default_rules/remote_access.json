@@ -1,0 +1,39 @@
+[
+  {
+    "id": "REMOTE_ACCESS_INBOUND",
+    "name": "Conexão recebida em porta de acesso ou administração remota",
+    "description": "Foi observada uma conexão de entrada em uma porta usada por RDP, SSH, Telnet, VNC ou WinRM. A origem não corresponde aos IPs configurados para o servidor SIEM. Prioridade alta por política de acesso remoto. A porta não comprova autenticação, controle efetivo ou ataque; confira origem, processo e autorização.",
+    "category": "remote-access", "severity": "HIGH", "confidence": "MEDIUM",
+    "conditions": [
+      {"field":"event_type","value":"network.connection"},
+      {"field":"network.protocol","value":"TCP"},
+      {"field":"raw_event.direction","value":"inbound"},
+      {"field":"network.remote_ip","op":"exists"},
+      {"field":"network.local_port","op":"in","value":[22,23,3389,5900,5901,5902,5903,5904,5905,5985,5986]}
+    ], "tags":["remote-access-policy"]
+  },
+  {
+    "id": "REMOTE_ACCESS_OUTBOUND",
+    "name": "Conexão a outro computador em porta de acesso remoto",
+    "description": "A máquina apresentou conexão TCP a uma porta remota usada por RDP, SSH, Telnet, VNC ou WinRM. O destino não é um dos IPs configurados para o servidor SIEM. A direção é de saída ou desconhecida. Prioridade alta para conferir se o acesso foi autorizado; isso não confirma uma sessão autenticada nem malware.",
+    "category": "remote-access", "severity": "HIGH", "confidence": "MEDIUM",
+    "conditions": [
+      {"field":"event_type","value":"network.connection"},
+      {"field":"network.protocol","value":"TCP"},
+      {"field":"raw_event.direction","op":"in","value":["outbound","unknown"]},
+      {"field":"network.remote_ip","op":"exists"},
+      {"field":"network.remote_port","op":"in","value":[22,23,3389,5900,5901,5902,5903,5904,5905,5985,5986]}
+    ], "tags":["remote-access-policy"]
+  },
+  {
+    "id": "REMOTE_ACCESS_TOOL_NETWORK",
+    "name": "Ferramenta de acesso remoto conectada à rede",
+    "description": "Um processo com nome de ferramenta conhecida de acesso remoto apresentou conexão a um destino diferente dos IPs do servidor SIEM. Inclui sinalização e comunicação com servidores da ferramenta, mesmo sem alguém controlando a tela. Prioridade alta por política; confirme o executável e a autorização. Ferramentas renomeadas ou desconhecidas podem não ser identificadas por esta regra.",
+    "category": "remote-access", "severity": "HIGH", "confidence": "LOW",
+    "conditions": [
+      {"field":"event_type","value":"network.connection"},
+      {"field":"network.remote_ip","op":"exists"},
+      {"field":"process.name","op":"in","value":["anydesk.exe","teamviewer.exe","teamviewer_service.exe","rustdesk.exe","tvnserver.exe","winvnc.exe","vncviewer.exe","mstsc.exe","msrdc.exe","quickassist.exe"]}
+    ], "tags":["remote-access-policy","process-name-indicator"]
+  }
+]

@@ -1,0 +1,146 @@
+[
+  {
+    "id": "TEMP_EXECUTION",
+    "name": "Execução a partir de diretório temporário",
+    "description": "Processo executado em diretório temporário ou de downloads. Instaladores legítimos também podem gerar este alerta.",
+    "category": "execution",
+    "severity": "MEDIUM",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "process.start"
+      },
+      {
+        "field": "process.path",
+        "op": "contains_any",
+        "value": [
+          "\\temp\\",
+          "/tmp/",
+          "\\downloads\\"
+        ]
+      }
+    ],
+    "tags": [
+      "behavior"
+    ],
+    "mitre": [
+      "T1204.002"
+    ]
+  },
+  {
+    "id": "FILE_CHANGE",
+    "name": "Arquivo monitorado alterado",
+    "description": "Alteração em caminho explicitamente monitorado. Verifique mudanças autorizadas.",
+    "category": "integrity",
+    "severity": "LOW",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "op": "in",
+        "value": [
+          "file.created",
+          "file.modified",
+          "file.deleted",
+          "file.moved"
+        ]
+      }
+    ],
+    "tags": [
+      "integrity"
+    ]
+  },
+  {
+    "id": "PERSISTENCE_CHANGE",
+    "name": "Mudança de persistência observada",
+    "description": "Registro, tarefa ou serviço com potencial de autostart sofreu alteração; a autoria deve ser investigada.",
+    "category": "persistence",
+    "severity": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "persistence.change"
+      }
+    ],
+    "mitre": [
+      "T1547.001",
+      "T1543.003"
+    ]
+  },
+  {
+    "id": "POWERSHELL_SIGNAL",
+    "name": "Sinal de risco em PowerShell",
+    "description": "Log de PowerShell contém operação que merece revisão. O conteúdo do script não foi armazenado.",
+    "category": "execution",
+    "severity": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "powershell.observed"
+      },
+      {
+        "field": "raw_event.powershell_signals",
+        "op": "contains_any",
+        "value": [
+          "frombase64string",
+          "downloadstring",
+          "encodedcommand",
+          "invoke-expression",
+          "amsi"
+        ]
+      }
+    ],
+    "mitre": [
+      "T1059.001"
+    ]
+  },
+  {
+    "id": "TELEMETRY_INTEGRITY",
+    "name": "Cobertura de telemetria degradada",
+    "description": "Permissão insuficiente, perda de eventos, reset de log ou componente indisponível reduz a cobertura de detecção.",
+    "category": "telemetry",
+    "severity": "MEDIUM",
+    "confidence": "HIGH",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "telemetry.integrity"
+      }
+    ],
+    "tags": [
+      "coverage"
+    ]
+  },
+  {
+    "id": "RESOURCE_ANOMALY",
+    "name": "Uso elevado de recursos",
+    "description": "Uso de CPU, memória ou disco excede o limite configurado. Não implica atividade maliciosa.",
+    "category": "anomaly",
+    "severity": "LOW",
+    "confidence": "LOW",
+    "conditions": [
+      {
+        "field": "event_type",
+        "value": "resource.anomaly"
+      }
+    ]
+  },
+  {
+    "id": "KNOWN_TEST_HASH",
+    "name": "Indicador sintético de laboratório",
+    "description": "Hash SHA-256 do texto benigno 'benign'. Regra desativada por padrão; substitua por indicadores de fontes confiáveis.",
+    "category": "indicator",
+    "severity": "HIGH",
+    "enabled": false,
+    "conditions": [
+      {
+        "field": "process.sha256",
+        "value": "56aea2f152b148a0886d27ff6b06f39b091c4f02ccb75c1aeef470e2d6c8e9c3"
+      }
+    ],
+    "tags": [
+      "synthetic"
+    ]
+  }
+]
